@@ -2,10 +2,10 @@
 home_path=/home/$USER
 
 # Define bitcoin path
-bitcoin_path=/home/$USER/bitcoin
+bitcoin_path=$home_path/bitcoin
 
 # Go to dev folder
-cd $user_path
+cd $home_path
 
 # Clone bitcoin repository
 # git clone https://github.com/bitcoin/bitcoin.git
@@ -22,11 +22,15 @@ make HOST=arm-linux-gnueabihf NO_QT=1
 # Go to bitcoin folder
 cd $bitcoin_path
 
+# Install Berkley DB 
+./contrib/install_db4.sh $PWD
+
 # Generate build files
 ./autogen.sh
 
-# COnfigure to use arm-linux with backward compatibility
-./configure --prefix=$PWD/depends/arm-linux-gnueabihf --enable-glibc-back-compat --enable-reduce-exports LDFLAGS=-static-libstdc++ --disable-wallet --without-gui
+# Configure build
+./configure BDB_LIBS="-L$PWD/db4/lib -ldb_cxx-4.8" BDB_CFLAGS="-I$PWD/db4/include" --without-gui
+
 
 # Compile and Build Bitcoin Core
 make

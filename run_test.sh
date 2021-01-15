@@ -2,11 +2,10 @@
 home_path=/home/$USER
 
 # Define bitcoin path
-bitcoin_path=/home/$USER/bitcoin
+bitcoin_path=$home_path/bitcoin
 
 # Go to bitcoin folder
 cd $bitcoin_path
-
 
 # Run example test
 test/functional/test_runner.py example_test.py

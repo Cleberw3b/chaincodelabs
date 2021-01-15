@@ -115,7 +115,9 @@ class ExampleTest(BitcoinTestFramework):
         # sync_all() should not include node2, since we're not expecting it to
         # sync.
         self.connect_nodes(0, 1)
-        self.sync_all(self.nodes[0:2])
+        self.connect_nodes(0, 2)
+        self.connect_nodes(1, 2)
+        self.sync_all()
 
     # Use setup_nodes() to customize the node start behaviour (for example if
     # you don't want to start all nodes at the start of the test).
@@ -135,10 +137,10 @@ class ExampleTest(BitcoinTestFramework):
         """Main test logic"""
 
         # Create P2P connections will wait for a verack to make sure the connection is fully up
-        peer_messaging = self.nodes[0].add_p2p_connection(BaseNode())
+        peer_messaging = self.nodes[1].add_p2p_connection(BaseNode())
 
         # Generating a block on one of the nodes will get us out of IBD
-        blocks = [int(self.nodes[0].generate(nblocks=1)[0], 16)]
+        blocks = [int(self.nodes[1].generate(nblocks=1)[0], 16)]
         self.sync_all(self.nodes[0:2])
 
         # Notice above how we called an RPC by calling a method with the same
@@ -152,19 +154,13 @@ class ExampleTest(BitcoinTestFramework):
         # breaking the test into sub-sections.
         self.log.info("Starting test!")
 
-        self.log.info("Calling a custom function")
-        custom_function()
-
-        self.log.info("Calling a custom method")
-        self.custom_method()
-
         self.log.info("Create some blocks")
-        self.tip = int(self.nodes[0].getbestblockhash(), 16)
-        self.block_time = self.nodes[0].getblock(self.nodes[0].getbestblockhash())['time'] + 1
+        self.tip = int(self.nodes[1].getbestblockhash(), 16)
+        self.block_time = self.nodes[1].getblock(self.nodes[1].getbestblockhash())['time'] + 1
 
-        height = self.nodes[0].getblockcount()
+        height = self.nodes[1].getblockcount()
 
-        for _ in range(10):
+        for _ in range(11):
             # Use the blocktools functionality to manually build a block.
             # Calling the generate() rpc is easier, but this allows us to exactly
             # control the blocks and transactions.
@@ -179,12 +175,10 @@ class ExampleTest(BitcoinTestFramework):
             height += 1
 
         self.log.info("Wait for node1 to reach current tip (height 11) using RPC")
-        self.nodes[1].waitforblockheight(11)
+        self.nodes[1].waitforblockheight(12)
 
         self.log.info("Connect node2 and node1")
         self.connect_nodes(1, 2)
-
-        self.log.info("Wait for node2 to receive all the blocks from node1")
         self.sync_all()
 
         self.log.info("Add P2P connection to node2")
@@ -210,6 +204,9 @@ class ExampleTest(BitcoinTestFramework):
         with p2p_lock:
             for block in peer_receiving.block_receive_map.values():
                 assert_equal(block, 1)
+            assert_equal(len(peer_receiving.block_receive_map), 12)
+            assert_equal(peer_receiving.block_receive_map[11].sha256, blocks[11].sha256)
+
 
 
 if __name__ == '__main__':
