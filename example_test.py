@@ -205,8 +205,6 @@ class ExampleTest(BitcoinTestFramework):
             for block in peer_receiving.block_receive_map.values():
                 assert_equal(block, 1)
             assert_equal(len(peer_receiving.block_receive_map), 12)
-            assert_equal(peer_receiving.block_receive_map[11].sha256, blocks[11].sha256)
-
 
 
 if __name__ == '__main__':
